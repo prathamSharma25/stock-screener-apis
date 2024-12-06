@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Real-Time Graph</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <h1>Real-Time Data Streaming</h1>
+
+    <!-- Dropdown for selecting ticker -->
+    <label for="ticker">Select Ticker:</label>
+    <select id="ticker">
+        <option value="BNS.TO">BNS.TO</option>
+        <option value="CNQ.TO">CNQ.TO</option>
+        <option value="TSAT.TO">TSAT.TO</option>
+        <option value="THX.V">THX.V</option>
+    </select>
+
+    <!-- Canvas for the real-time chart -->
+    <canvas id="realtimeChart" width="400" height="200"></canvas>
+
+    <script>
+        const ctx = document.getElementById('realtimeChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], // x-axis labels
+                datasets: [{
+                    label: 'Data Values',
+                    data: [], // y-axis data
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    x: { display: true },
+                    y: { display: true }
+                }
+            }
+        });
+
+        let eventSource;
+
+        // Function to start streaming data
+        function startStream(ticker) {
+            // Close any existing EventSource connection
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            // Create a new EventSource with the selected ticker
+            const url = ticker ? '/stream?ticker=${ticker}' : '/stream';
+            eventSource = new EventSource(url);
+
+            // Handle incoming data from the stream
+            eventSource.onmessage = function (event) {
+                const newData = JSON.parse(event.data); // Parse the server data
+                const labels = newData.map(item => item.timestamp); // Adjust to match your API structure
+                const values = newData.map(item => item.bid); // Adjust to match your API structure
+
+                // Update the chart
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = values;
+                chart.update();
+            };
+        }
+
+        // Listen for changes in the dropdown menu
+        const tickerSelect = document.getElementById('ticker');
+        tickerSelect.addEventListener('change', (event) => {
+            const selectedticker = event.target.value;
+            startStream(selectedticker); // Start streaming with the selected ticker
+        });
+
+        // Start with all data (default)
+        startStream('');
+    </script>
+</body>
+
+</html>
