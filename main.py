@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import StreamingResponse, JSONResponse
 import mysql.connector
 from datetime import datetime, time
+import os
 import asyncio
 from typing import AsyncGenerator
 
@@ -15,10 +16,10 @@ async def root():
 
 def get_db_connection():
     conn = mysql.connector.connect(
-        host='stock-screener-database.cz8wmwy42bea.ca-central-1.rds.amazonaws.com',
-        user='admin',
-        password='AGI61vBebVsSHVL7Girh',
-        database='stockScreenerDatabase'
+        host=os.environ['SS_DB_HOST'],
+        user=os.environ['SS_DB_USER'],
+        password=os.environ['SS_DB_PASSWORD'],
+        database=os.environ['SS_DB_NAME']
     )
     return conn
 
