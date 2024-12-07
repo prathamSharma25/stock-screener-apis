@@ -34,7 +34,7 @@ app.layout = html.Div([
     # Interval component for periodic updates
     dcc.Interval(
         id="interval-update",
-        interval=5000,  # Update every 5 seconds
+        interval=1000,  # Update every second
         n_intervals=0  # Number of times the interval has passed
     )
 ])
@@ -42,12 +42,12 @@ app.layout = html.Div([
 # Global variables to store streamed data
 streamed_timestamps = []
 streamed_bid_values = []
+active_ticker = None
 
 
 # Function to fetch streaming data
 def fetch_stream_data(ticker):
-    global streamed_timestamps
-    global streamed_bid_values
+    global streamed_timestamps, streamed_bid_values
     timestamps, bid_values = [], []
     url = f"http://127.0.0.1:8000/stream?ticker={ticker}"
     try:
@@ -77,11 +77,10 @@ def start_stream(ticker):
     [Input("ticker-dropdown", "value"), Input("interval-update", "n_intervals")]
 )
 def update_graph(ticker, n_intervals):
-    global streamed_timestamps
-    global streamed_bid_values
+    global streamed_timestamps, streamed_bid_values, active_ticker
 
     # If ticker changes, restart the stream
-    if n_intervals == 0:
+    if ticker != active_ticker:
         start_stream(ticker)
 
     # Process streamed data for the graph
@@ -106,4 +105,4 @@ def update_graph(ticker, n_intervals):
 
 # Run the Dash app
 if __name__ == "__main__":
-    app.run_server(debug=True, host="127.0.0.1", port=8050)
+    app.run_server(debug=False, host="127.0.0.1", port=8050)
